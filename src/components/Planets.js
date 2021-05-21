@@ -9,23 +9,42 @@ const fetchPlanets = async (page) => {
 
 const Planets = () => {
   const [page, setPage] = useState(1);
-  const { data, status } = useQuery(["planets", page], () => fetchPlanets(page));
+
+  const { data, status, isPreviousData } = useQuery(
+    ["planets", page],
+    () => fetchPlanets(page),
+    { keepPreviousData: true }
+  );
 
   return (
     <div>
       <h2>Planets</h2>
-      <button onClick={() => setPage(1)}>page 1</button>
-      <button onClick={() => setPage(2)}>page 2</button>
-      <button onClick={() => setPage(3)}>page 3</button>
 
       {status === "error" && <div>Error Fetching Data</div>}
       {status === "loading" && <div>Loading Fetching Data</div>}
       {status === "success" && (
-        <div>
-          {data.results.map((planet) => (
-            <Planet key={planet.name} planet={planet} />
-          ))}
-        </div>
+        <React.Fragment>
+          <button
+            onClick={() => setPage((old) => Math.max(old - 1, 1))}
+            disabled={page === 1}
+          >
+            Prev Page
+          </button>
+          <span>{page}</span>
+          <button
+            onClick={() =>
+              setPage((old) => (!isPreviousData && data.next ? old + 1 : old))
+            }
+            disabled={!isPreviousData && data.next ? false : true}
+          >
+            Next Page
+          </button>
+          <div>
+            {data.results.map((planet) => (
+              <Planet key={planet.name} planet={planet} />
+            ))}
+          </div>
+        </React.Fragment>
       )}
     </div>
   );
